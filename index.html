@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1d2433">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="GridDiscipline">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>GridDiscipline</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Archivo:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef0f4;--paper:#f9fafc;--rule:#c6d0e0;--ink:#1d2433;--mute:#69738a;--ok:#2c7a4b;--okbg:#d5ecdd;--no:#b8402f;--nobg:#f6dcd7;--hl:#e3e9f5;--acc:#1d2433;--accfg:#f9fafc}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1217;--paper:#161a22;--rule:#2a3140;--ink:#e6e9f0;--mute:#8a93a6;--ok:#5fd08a;--okbg:#17382a;--no:#f08272;--nobg:#3d1f1b;--hl:#202636;--acc:#e6e9f0;--accfg:#0f1217}}
+:root[data-theme="dark"]{--bg:#0f1217;--paper:#161a22;--rule:#2a3140;--ink:#e6e9f0;--mute:#8a93a6;--ok:#5fd08a;--okbg:#17382a;--no:#f08272;--nobg:#3d1f1b;--hl:#202636;--acc:#e6e9f0;--accfg:#0f1217}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--ink);font-family:Archivo,system-ui,sans-serif;margin:0}
+.hand{font-family:Kalam,'Segoe Print',cursive}
+.paper{background:var(--paper);background-image:repeating-linear-gradient(transparent 0 31px,var(--rule) 31px 32px);border:1px solid var(--rule)}
+table{border-collapse:separate;border-spacing:0}
+th,td{border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.sticky-l{position:sticky;left:0;z-index:2;background:var(--paper)}
+.sticky-r{position:sticky;right:0;z-index:2;background:var(--paper)}
+td.cell{padding:0;width:30px;min-width:30px;height:34px}
+.cell button{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.s1{background:var(--okbg);color:var(--ok)}.s2{background:var(--nobg);color:var(--no)}
+.fut{opacity:.55}
+.hl,.hl.sticky-l,.hl.sticky-r{background:var(--hl)}
+td.cell.hl.s1{background:var(--okbg);filter:brightness(.95)}td.cell.hl.s2{background:var(--nobg);filter:brightness(.95)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+.btn{border:1px solid var(--ink);padding:.4rem .75rem;font-weight:600;font-size:.875rem;display:inline-flex;gap:.4rem;align-items:center;border-radius:6px}
+.btn.p{background:var(--acc);color:var(--accfg)}
+.ib{padding:.3rem;border-radius:6px;color:var(--mute);display:inline-flex}
+.ib:hover{color:var(--ink);background:var(--hl)}
+.inp{background:var(--bg);border:1px solid var(--rule);border-radius:6px;padding:.4rem .6rem;color:var(--ink);width:100%}
+</style>
+</head>
+<body>
+<div id="app" class="mx-auto max-w-[1400px] px-3 py-5 sm:px-6"></div>
+<div id="modal"></div>
+<script>
+const ic=(p,s=16)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const I={check:ic('<path d="M20 6 9 17l-5-5"/>',15),x:ic('<path d="M18 6 6 18M6 6l12 12"/>',15),plus:ic('<path d="M12 5v14M5 12h14"/>'),cal:ic('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'),set:ic('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5h0a1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'),trash:ic('<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/>',15),l:ic('<path d="m15 18-6-6 6-6"/>'),r:ic('<path d="m9 18 6-6-6-6"/>'),up:ic('<path d="m18 15-6-6-6 6"/>'),dn:ic('<path d="m6 9 6 6 6-6"/>'),ed:ic('<path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',14),sun:ic('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),moon:ic('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'),grip:ic('<circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/>',14),fill:ic('<path d="M20 6 9 17l-5-5"/><path d="M20 12 14 18"/>')};
+const MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const QS=['Discipline today, freedom tomorrow.','Small boxes, ticked daily, build a different life.','You don’t rise to your goals; you fall to your habits.','Do it tired. Do it bored. Do it anyway.','A missed day is data. Two is a decision.','Be the person your tracker says you are.'];
+const DEF=['Wake up early','Cold shower','Workout','Read 20 pages','No sugar','Meditate 10 min','Drink 3L water','No phone first hour','Journaling','Eat clean','Daily walk','Push through hard days','No alcohol','Sleep by 10:30','Plan tomorrow today'];
+const KEY='griddiscipline.v1';
+const now=new Date();
+let S={habits:DEF.map((n,i)=>({id:'h'+i,name:n})),data:{},theme:null,qi:0,quote:'',uid:100};
+try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
+let V={y:now.getFullYear(),m:now.getMonth(),sel:now.getDate(),modal:false};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const dim=()=>new Date(V.y,V.m+1,0).getDate();
+const mk=()=>V.y+'-'+(V.m+1);
+const get=(h,d)=>((S.data[mk()]||{})[h]||{})[d]||0;
+function passed(){const c=V.y*12+V.m,n=now.getFullYear()*12+now.getMonth();return c<n?dim():c===n?now.getDate():0}
+function fixSel(){const p=passed();V.sel=Math.min(V.sel,dim());if(V.y*12+V.m!==now.getFullYear()*12+now.getMonth())V.sel=p?dim():1;else V.sel=now.getDate()}
+function applyTheme(){const t=S.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=t;return t}
+function stats(){const p=passed(),rows=S.habits.map(h=>{let c=0;for(let d=1;d<=p;d++)if(get(h.id,d)===1)c++;return{id:h.id,c,pct:p?Math.round(c/p*100):null}});const tot=rows.reduce((a,r)=>a+r.c,0),poss=p*S.habits.length;let perfect=0;if(S.habits.length)for(let d=1;d<=p;d++)if(S.habits.every(h=>get(h.id,d)===1))perfect++;return{rows,overall:poss?Math.round(tot/poss*100):null,tot,poss,p,perfect}}
+function render(){
+  const t=applyTheme(),D=dim(),st=stats(),isNow=V.y===now.getFullYear()&&V.m===now.getMonth();
+  let head='<tr><th class="sticky-l text-left px-3 py-2 hand text-lg min-w-[170px]" style="z-index:3">Habits</th>';
+  for(let d=1;d<=D;d++){const td=isNow&&d===now.getDate(),sl=d===V.sel;head+=`<th data-c="${d}" class="p-0 text-xs font-semibold ${td?'':'font-normal'}" style="color:${td?'var(--ink)':'var(--mute)'}"><button data-a="sel" data-d="${d}" class="w-full py-2" title="Select day ${d}" style="${sl?'box-shadow:inset 0 -3px var(--ink);color:var(--ink)':''}">${d}</button></th>`}
+  head+='<th class="sticky-r px-3 text-sm" style="z-index:3">%</th></tr>';
+  let body='';
+  S.habits.forEach((h,ri)=>{
+    body+=`<tr><td data-r="${ri}" class="sticky-l px-2 hand text-[17px] whitespace-nowrap"><div class="flex items-center justify-between gap-2"><span>${esc(h.name)}</span><span class="flex"><button class="ib" data-a="edit" aria-label="Edit ${esc(h.name)}">${I.ed}</button><button class="ib" data-a="del" data-i="${ri}" aria-label="Delete ${esc(h.name)}">${I.trash}</button></span></div></td>`;
+    for(let d=1;d<=D;d++){const v=get(h.id,d);body+=`<td data-r="${ri}" data-c="${d}" class="cell s${v} ${d>st.p?'fut':''}"><button data-a="tog" data-h="${h.id}" data-d="${d}" aria-label="${esc(h.name)}, day ${d}: ${['empty','done','missed'][v]}">${v===1?I.check:v===2?I.x:''}</button></td>`}
+    const r=st.rows[ri];body+=`<td data-r="${ri}" class="sticky-r px-3 text-center hand text-lg font-bold">${r.pct===null?'—':r.pct+'%'}</td></tr>`;
+  });
+  const q=S.quote||QS[S.qi%QS.length];
+  const full=S.habits.length&&S.habits.every(h=>get(h.id,V.sel)===1);
+  document.getElementById('app').innerHTML=`
+  <header class="flex flex-col gap-4 mb-5">
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight" style="border-bottom:3px solid var(--ink);padding-bottom:4px">HABIT TRACKER</h1>
+      <div class="flex items-center gap-1" role="group" aria-label="Month">
+        <button class="ib" data-a="prev" aria-label="Previous month">${I.l}</button>
+        <span class="text-sm font-semibold" style="color:var(--mute)">MONTH:</span>
+        <select data-a="month" class="inp !w-auto font-semibold" aria-label="Month">${MN.map((n,i)=>`<option value="${i}" ${i===V.m?'selected':''}>${n}</option>`).join('')}</select>
+        <input data-a="year" type="number" class="inp !w-[84px] font-semibold" value="${V.y}" min="2000" max="2100" aria-label="Year">
+        <button class="ib" data-a="next" aria-label="Next month">${I.r}</button>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button class="btn p" data-a="add">${I.plus}Add habit</button>
+      <button class="btn" data-a="fill" title="Mark every habit done for the selected day">${I.fill}${full?'Clear':'Fill'} day ${V.sel}</button>
+      <button class="btn" data-a="today">${I.cal}Today</button>
+      <button class="btn" data-a="settings">${I.set}Manage</button>
+      <button class="btn" data-a="theme" aria-label="Toggle theme">${t==='dark'?I.sun+'Journal light':I.moon+'Minimal dark'}</button>
+    </div>
+  </header>
+  <div class="paper rounded-lg overflow-x-auto" style="max-height:78vh"><table class="w-full">${head}${body}</table></div>
+  ${S.habits.length?'':'<p class="mt-4 text-center" style="color:var(--mute)">No habits yet. Use Add habit to start your grid.</p>'}
+  <section class="mt-6 grid gap-4 md:grid-cols-[auto_1fr]">
+    <div class="paper rounded-lg px-6 py-5 flex flex-col justify-center" style="background-image:none">
+      <div class="text-sm font-semibold" style="color:var(--mute)">Overall discipline score</div>
+      <div class="hand font-bold leading-none my-2" style="font-size:4.5rem;color:${st.overall===null?'var(--mute)':st.overall>=80?'var(--ok)':st.overall>=50?'var(--ink)':'var(--no)'}">${st.overall===null?'—':st.overall+'%'}</div>
+      <div class="text-sm" style="color:var(--mute)">${st.overall===null?'Starts counting on day 1':st.tot+' of '+st.poss+' boxes ticked'}</div><div class="mt-3 pt-3 flex items-baseline gap-2" style="border-top:1px solid var(--rule)"><span class="hand text-3xl font-bold" style="color:var(--ok)">${st.perfect}</span><span class="text-sm" style="color:var(--mute)">perfect 100% ${st.perfect===1?'day':'days'}</span></div>
+    </div>
+    <div class="paper rounded-lg px-6 py-5 flex flex-col justify-between gap-4">
+      <p class="hand text-2xl sm:text-3xl leading-snug" style="max-width:34ch">“${esc(q)}”</p>
+      <div><button class="btn" data-a="quote">Next quote</button></div>
+    </div>
+  </section>`;
+}
+function renderModal(focus){
+  const m=document.getElementById('modal');
+  if(!V.modal){m.innerHTML='';return}
+  m.innerHTML=`<div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" style="background:rgba(0,0,0,.5)" data-a="close">
+  <div role="dialog" aria-modal="true" aria-label="Manage habits" class="w-full sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-t-xl sm:rounded-xl p-5" style="background:var(--paper);border:1px solid var(--rule)">
+    <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-extrabold">Manage habits</h2><button class="ib" data-a="close" aria-label="Close">${I.x}</button></div>
+    <div class="flex gap-2 mb-4"><input id="newh" class="inp" placeholder="New habit, e.g. Stretch 10 min" maxlength="60"><button class="btn p shrink-0" data-a="addgo">${I.plus}Add</button></div>
+    <ul id="hl" class="flex flex-col gap-1.5 mb-5">${S.habits.map((h,i)=>`<li draggable="true" data-i="${i}" class="flex items-center gap-1 p-1.5 rounded-md" style="border:1px solid var(--rule)"><span style="color:var(--mute);cursor:grab" title="Drag to reorder">${I.grip}</span><input class="inp !py-1" value="${esc(h.name)}" data-a="ren" data-i="${i}" aria-label="Habit name"><button class="ib" data-a="mv" data-i="${i}" data-dir="-1" aria-label="Move up" ${i===0?'disabled':''}>${I.up}</button><button class="ib" data-a="mv" data-i="${i}" data-dir="1" aria-label="Move down" ${i===S.habits.length-1?'disabled':''}>${I.dn}</button><button class="ib" data-a="del" data-i="${i}" aria-label="Delete">${I.trash}</button></li>`).join('')}</ul>
+    <label class="text-sm font-semibold block mb-1">Custom motivation quote</label>
+    <input id="cq" class="inp mb-1" value="${esc(S.quote)}" placeholder="Leave empty to rotate built-in quotes" maxlength="120" data-a="cq">
+    <div class="flex justify-between mt-5"><button class="btn" data-a="reset">${I.trash}Clear this month</button><button class="btn p" data-a="close">Done</button></div>
+  </div></div>`;
+  if(focus){const n=document.getElementById('newh');n&&n.focus()}
+}
+function changed(){save();render();if(V.modal)renderModal()}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;
+  if(a==='close'){if(b.classList.contains('fixed')&&e.target!==b)return;V.modal=false;renderModal();return}
+  if(a==='tog'){const h=b.dataset.h,d=b.dataset.d,k=mk();S.data[k]=S.data[k]||{};S.data[k][h]=S.data[k][h]||{};const n=(get(h,d)+1)%3;if(n)S.data[k][h][d]=n;else delete S.data[k][h][d];V.sel=+d;changed();return}
+  if(a==='sel'){V.sel=+b.dataset.d;render();return}
+  if(a==='prev'||a==='next'){V.m+=a==='next'?1:-1;if(V.m<0){V.m=11;V.y--}if(V.m>11){V.m=0;V.y++}fixSel();render();return}
+  if(a==='today'){V.y=now.getFullYear();V.m=now.getMonth();V.sel=now.getDate();render();return}
+  if(a==='theme'){S.theme=applyTheme()==='dark'?'light':'dark';save();render();return}
+  if(a==='quote'){S.quote='';S.qi=(S.qi+1)%QS.length;save();render();return}
+  if(a==='fill'){const k=mk();S.data[k]=S.data[k]||{};const full=S.habits.every(h=>get(h.id,V.sel)===1);S.habits.forEach(h=>{S.data[k][h.id]=S.data[k][h.id]||{};if(full)delete S.data[k][h.id][V.sel];else S.data[k][h.id][V.sel]=1});changed();return}
+  if(a==='add'||a==='settings'||a==='edit'){V.modal=true;renderModal(a==='add');return}
+  if(a==='addgo'){const i=document.getElementById('newh'),v=i.value.trim();if(!v)return i.focus();S.habits.push({id:'h'+(S.uid++),name:v});changed();document.getElementById('newh').focus();return}
+  if(a==='mv'){const i=+b.dataset.i,j=i+ +b.dataset.dir;if(j<0||j>=S.habits.length)return;[S.habits[i],S.habits[j]]=[S.habits[j],S.habits[i]];changed();return}
+  if(a==='del'){const h=S.habits[+b.dataset.i];if(confirm('Delete “'+h.name+'” and its history?')){S.habits.splice(+b.dataset.i,1);Object.values(S.data).forEach(o=>delete o[h.id]);changed()}return}
+  if(a==='reset'){if(confirm('Clear every box for '+MN[V.m]+' '+V.y+'?')){delete S.data[mk()];changed()}return}
+});
+document.addEventListener('change',e=>{
+  const a=e.target.dataset.a;
+  if(a==='month'){V.m=+e.target.value;fixSel();render()}
+  else if(a==='year'){const y=+e.target.value;if(y>=2000&&y<=2100){V.y=y;fixSel();render()}}
+  else if(a==='ren'){const v=e.target.value.trim();if(v){S.habits[+e.target.dataset.i].name=v;save();render()}else e.target.value=S.habits[+e.target.dataset.i].name}
+  else if(a==='cq'){S.quote=e.target.value.trim();save();render()}
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&V.modal){V.modal=false;renderModal()}
+  if(e.key==='Enter'&&e.target.id==='newh')document.querySelector('[data-a=addgo]').click();
+});
+function clearHl(){document.querySelectorAll('.hl').forEach(x=>x.classList.remove('hl'))}
+document.addEventListener('mouseover',e=>{
+  const c=e.target.closest('td[data-r],th[data-c]');clearHl();if(!c)return;
+  const r=c.dataset.r,d=c.dataset.c,q=[];
+  if(r!==undefined)q.push(`[data-r="${r}"]`);if(d!==undefined)q.push(`[data-c="${d}"]`);
+  document.querySelectorAll(q.join(',')).forEach(x=>x.classList.add('hl'));
+});
+let di=null;
+document.addEventListener('dragstart',e=>{const l=e.target.closest&&e.target.closest('li[data-i]');if(l)di=+l.dataset.i});
+document.addEventListener('dragover',e=>{if(di!==null&&e.target.closest('li[data-i]'))e.preventDefault()});
+document.addEventListener('drop',e=>{const l=e.target.closest('li[data-i]');if(di===null||!l)return;e.preventDefault();const j=+l.dataset.i;const [x]=S.habits.splice(di,1);S.habits.splice(j,0,x);di=null;changed()});
+fixSel();render();
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+</script>
+</body>
+</html>
